@@ -1,0 +1,9 @@
+from .auth import router as auth
+from .users import router as users
+from .devices import router as devices
+from .locations import router as locations
+from .tracking import router as tracking
+from .alerts import router as alerts
+from .geofence import router as geofence
+from .dashboard import router as dashboard
+from .admin import router as admin
