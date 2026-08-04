@@ -1,3 +1,5 @@
+import json
+import os
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -67,13 +69,44 @@ def get_allowed_hosts():
     if settings.DEBUG:
         return ["*"]
 
-    hosts = []
-    for origin in settings.CORS_ORIGINS:
+    hosts = set()
+    render_hostname = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+    if render_hostname:
+        hosts.add(render_hostname)
+
+    origins = settings.CORS_ORIGINS or []
+    if isinstance(origins, str):
+        try:
+            origins = json.loads(origins)
+        except Exception:
+            origins = [origins]
+
+    for origin in origins:
+        if not origin:
+            continue
+
+        if isinstance(origin, str):
+            origin = origin.strip()
+            if origin.startswith("[") or origin.startswith("{"):
+                try:
+                    parsed_items = json.loads(origin)
+                    for item in parsed_items:
+                        parsed = urlparse(item)
+                        if parsed.hostname:
+                            hosts.add(parsed.hostname)
+                        else:
+                            hosts.add(item)
+                    continue
+                except Exception:
+                    pass
+
         parsed = urlparse(origin)
-        hostname = parsed.hostname or origin
-        if hostname:
-            hosts.append(hostname)
-    return list(dict.fromkeys(hosts))
+        if parsed.hostname:
+            hosts.add(parsed.hostname)
+        else:
+            hosts.add(origin)
+
+    return list(hosts)
 
 
 # Add CORS middleware
