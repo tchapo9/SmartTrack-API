@@ -10,7 +10,7 @@ from app.database.connection import get_db
 from app.models.user import User, UserRole
 from app.core.exceptions import UnauthorizedError, ForbiddenError
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
@@ -66,13 +66,14 @@ class SecurityService:
         return user
 
     @staticmethod
-    async def get_current_active_user(current_user: User = Depends(get_current_user)):
+    async def get_current_active_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
+        current_user = await SecurityService.get_current_user(token=token, db=db)
         if not current_user.is_active:
             raise ForbiddenError("Inactive user")
         return current_user
 
     @staticmethod
     async def get_current_admin_user(current_user: User = Depends(get_current_active_user)):
-        if current_user.role != "admin":
+        if current_user.role != UserRole.ADMIN:
             raise ForbiddenError("Admin privileges required")
         return current_user

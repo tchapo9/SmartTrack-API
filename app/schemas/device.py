@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field
 
@@ -28,9 +29,9 @@ class DeviceResponse(BaseModel):
     status: str
     is_active: bool
     lost_mode: bool
-    last_connection: Optional[str]
-    created_at: Optional[str]
-    updated_at: Optional[str]
+    last_connection: Optional[datetime]
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
 
     class Config:
         orm_mode = True
