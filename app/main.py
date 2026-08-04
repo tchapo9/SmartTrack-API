@@ -130,4 +130,18 @@ if __name__ == "__main__":
         port=8000,
         reload=settings.DEBUG,
         log_level="debug" if settings.DEBUG else "info"
+    )    from urllib.parse import urlparse
+    
+    def get_allowed_hosts():
+        if settings.DEBUG:
+            return ["*"]
+        hosts = []
+        for origin in settings.CORS_ORIGINS:
+            parsed = urlparse(origin)
+            hosts.append(parsed.hostname or origin)
+        return list(dict.fromkeys(hosts))
+    
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=get_allowed_hosts()
     )
