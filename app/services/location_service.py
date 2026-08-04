@@ -107,8 +107,9 @@ class LocationService:
                 "timestamp": location.timestamp.isoformat() if location.timestamp else None,
                 "created_at": location.created_at.isoformat() if location.created_at else None,
             })
-        
-        return location
+            return location
+
+        raise NotFoundError("No location found for this device")
 
     async def get_location_history(
         self,
